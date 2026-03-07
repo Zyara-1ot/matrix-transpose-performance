@@ -32,7 +32,7 @@ sudo sh -c 'echo 128 > /proc/sys/vm/nr_hugepages'  # for huge pages
 
 ---
 
-## Results — Every Optimization Step
+## Results  Every Optimization Step
 
 | Step | Optimization | GB/s | Speedup vs Naive |
 |---|---|---|---|
@@ -136,7 +136,7 @@ AVX2 registers split into two 128-bit lanes. Steps 1 and 2 work within each lane
 
 ### Step 6 - Output Padding (7.43 GB/s)
 
-Same power-of-2 problem on B. B's row width is `n = 4096` — same cache set conflicts on writes. Even though we never explicitly read B, every write causes "read for ownership" — CPU fetches the cache line from RAM before modifying it. Those fetches suffer the same set conflicts.
+Same power-of-2 problem on B. B's row width is `n = 4096`  same cache set conflicts on writes. Even though we never explicitly read B, every write causes "read for ownership" — CPU fetches the cache line from RAM before modifying it. Those fetches suffer the same set conflicts.
 
 Fix: `pad_n = n + 16 = 4112` as B's stride. Same logic as pad_m.
 
@@ -168,7 +168,7 @@ This also explains exceeding the memcpy benchmark — the memcpy used unaligned 
 Every memory access requires translating virtual address → physical address via the page table. The TLB (Translation Lookaside Buffer) caches these translations  but only holds ~64-128 entries.
 
 - **4KB normal pages:** 64MB matrix needs 16,384 page table entries — constant TLB misses, each requiring a RAM access to walk the page table (~100ns penalty)
-- **2MB huge pages:** Same matrix needs only **32 entries** — fits entirely in TLB, zero TLB misses
+- **2MB huge pages:** Same matrix needs only **32 entries**  fits entirely in TLB, zero TLB misses
 
 ```bash
 sudo sh -c 'echo 128 > /proc/sys/vm/nr_hugepages'
