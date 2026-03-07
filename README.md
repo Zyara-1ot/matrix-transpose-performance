@@ -203,7 +203,7 @@ Manual prefetch helps for irregular access patterns (pointer chasing, graphs) wh
 
 ### Huge Pages (First Attempt)
 
-Failed when code still had outer 64×64 tiling. TLB benefit was outweighed by other inefficiencies. Removing tiling first made TLB the visible bottleneck — then huge pages could fix it.
+Failed when code still had outer 64×64 tiling. TLB benefit was outweighed by other inefficiencies. Removing tiling first made TLB the visible bottleneck  then huge pages could fix it.
 
 
 
