@@ -1,0 +1,23 @@
+# Compiled binaries
+transpose
+*.out
+*.exe
+*.o
+*.obj
+*.a
+*.so
+
+# Build folders
+build/
+bin/
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
