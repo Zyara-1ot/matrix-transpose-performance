@@ -1,4 +1,4 @@
-# Matrix Transpose Optimization — From 0.16 GB/s to 11.5 GB/s
+# Matrix Transpose Optimization  From 0.16 GB/s to 11.5 GB/s
 
 A deep dive into optimizing a 4096×4096 integer matrix transpose on an AMD Ryzen 5 5500U (Fedora Linux), achieving **71x speedup** by systematically eliminating every memory bottleneck.
 
