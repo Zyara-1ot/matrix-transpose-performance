@@ -54,7 +54,7 @@ sudo sh -c 'echo 128 > /proc/sys/vm/nr_hugepages'  # for huge pages
 
 ---
 
-### Step 1 — Naive (0.16 GB/s)
+### Step 1 - Naive (0.16 GB/s)
 
 ```cpp
 for(int i = 0; i < n; i++)
@@ -66,7 +66,7 @@ Reading A row by row is sequential  good. Writing to B column by column jumps `n
 
 ---
 
-### Step 2 — Cache Tiling (0.82 GB/s)
+### Step 2 - Cache Tiling (0.82 GB/s)
 
 ```cpp
 for(int I = 0; I < n; I += T)
@@ -76,13 +76,13 @@ for(int I = 0; I < n; I += T)
                 B[j*n+i] = A[i*m+j];
 ```
 
-Process T×T blocks instead of full rows. A 64×64 tile = 64×64×4 = 16KB — fits in L1 cache (32KB) alongside the destination tile. Both read and write data stay warm in cache during the entire tile. Jumps are contained within the tile, not across 4096 rows.
+Process T×T blocks instead of full rows. A 64×64 tile = 64×64×4 = 16KB - fits in L1 cache (32KB) alongside the destination tile. Both read and write data stay warm in cache during the entire tile. Jumps are contained within the tile, not across 4096 rows.
 
 Time complexity is still O(N²)  same work, smarter order.
 
 ---
 
-### Step 3 — OpenMP + Compiler Flags (2.29 GB/s)
+### Step 3 - OpenMP + Compiler Flags (2.29 GB/s)
 
 ```cpp
 #pragma omp parallel for collapse(2)
@@ -95,7 +95,7 @@ for(int I ...) for(int J ...)
 
 ---
 
-### Step 4 — Input Padding (3.0 GB/s)
+### Step 4 - Input Padding (3.0 GB/s)
 
 Matrix rows are 4096 elements = 16384 bytes wide. 16384 is a power of 2. L1 cache has 64 sets. Cache set formula:
 
@@ -111,7 +111,7 @@ The 16 padding ints (64 bytes = one cache line) are never read or written for ac
 
 ---
 
-### Step 5 — AVX2 8×8 Register Transpose (7.23 GB/s)
+### Step 5 - AVX2 8×8 Register Transpose (7.23 GB/s)
 
 Instead of processing one element at a time, load 8 full rows into 8 YMM registers , transpose entirely inside registers using shuffle instructions, then store 8 columns.
 
@@ -134,7 +134,7 @@ AVX2 registers split into two 128-bit lanes. Steps 1 and 2 work within each lane
 
 ---
 
-### Step 6 — Output Padding (7.43 GB/s)
+### Step 6 - Output Padding (7.43 GB/s)
 
 Same power-of-2 problem on B. B's row width is `n = 4096` — same cache set conflicts on writes. Even though we never explicitly read B, every write causes "read for ownership" — CPU fetches the cache line from RAM before modifying it. Those fetches suffer the same set conflicts.
 
@@ -142,7 +142,7 @@ Fix: `pad_n = n + 16 = 4112` as B's stride. Same logic as pad_m.
 
 ---
 
-### Step 7 — Remove Outer Tiling (10.0 GB/s)
+### Step 7 - Remove Outer Tiling (10.0 GB/s)
 
 Replaced 4 nested loops with 2:
 
@@ -163,7 +163,7 @@ This also explains exceeding the memcpy benchmark — the memcpy used unaligned 
 
 ---
 
-### Step 8 — 2MB Huge Pages (11.5 GB/s)
+### Step 8 - 2MB Huge Pages (11.5 GB/s)
 
 Every memory access requires translating virtual address → physical address via the page table. The TLB (Translation Lookaside Buffer) caches these translations  but only holds ~64-128 entries.
 
@@ -185,7 +185,7 @@ This was the final remaining bottleneck  once tiling, padding, and AVX eliminate
 
 `_mm256_stream_si256` bypasses cache — writes directly to RAM, skipping read-for-ownership. Should be perfect for write-only B.
 
-**Why it failed:** Our write pattern `B[j*pad_n+i]` jumps 16KB between consecutive avxtps calls. Cache batches these scattered writes efficiently — multiple writes collect in the same cache line before one RAM write. Streaming stores remove that batching — every write hits RAM individually. With 6 OpenMP threads all doing scattered streaming stores simultaneously, the memory controller gets overwhelmed. Result: 6.2 GB/s vs 7.4 GB/s with regular stores.
+**Why it failed:** Our write pattern `B[j*pad_n+i]` jumps 16KB between consecutive avxtps calls. Cache batches these scattered writes efficiently - multiple writes collect in the same cache line before one RAM write. Streaming stores remove that batching , every write hits RAM individually. With 6 OpenMP threads all doing scattered streaming stores simultaneously, the memory controller gets overwhelmed. Result: 6.2 GB/s vs 7.4 GB/s with regular stores.
 
 Streaming stores work for sequential writes (memcpy-style), not scattered writes (transpose-style).
 
