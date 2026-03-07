@@ -2,7 +2,7 @@
 
 A deep dive into optimizing a 4096×4096 integer matrix transpose on an AMD Ryzen 5 5500U (Fedora Linux), achieving **71x speedup** by systematically eliminating every memory bottleneck.
 
-**Final result: 11.5 GB/s — correct, consistent, exceeding naive memcpy bandwidth.**
+**Final result: 11.5 GB/s .**
 
 ---
 
@@ -62,7 +62,7 @@ for(int i = 0; i < n; i++)
         B[j * n + i] = A[i * m + j];
 ```
 
-Reading A row by row is sequential — good. Writing to B column by column jumps `n * sizeof(int) = 16KB` per write — every single write is a cache miss, forcing a 400-cycle RAM stall. CPU spends 99% of time waiting for memory.
+Reading A row by row is sequential  good. Writing to B column by column jumps `n * sizeof(int) = 16KB` per write  every single write is a cache miss, forcing a 400-cycle RAM stall. CPU spends 99% of time waiting for memory.
 
 ---
 
@@ -78,7 +78,7 @@ for(int I = 0; I < n; I += T)
 
 Process T×T blocks instead of full rows. A 64×64 tile = 64×64×4 = 16KB — fits in L1 cache (32KB) alongside the destination tile. Both read and write data stay warm in cache during the entire tile. Jumps are contained within the tile, not across 4096 rows.
 
-Time complexity is still O(N²) — same work, smarter order.
+Time complexity is still O(N²)  same work, smarter order.
 
 ---
 
