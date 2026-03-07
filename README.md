@@ -159,7 +159,7 @@ AVX already provides natural 8×8 cache-friendly blocking. The outer 64×64 tili
 
 With 2 loops, OpenMP has 512×512 = **262,144 independent tasks** to distribute vs 64×64 = 4,096 before. Finer granularity = better load balancing across cores = better throughput.
 
-This also explains exceeding the memcpy benchmark — the memcpy used unaligned vectors, our code uses 64-byte aligned + padded memory with perfectly distributed parallel work.
+This also explains exceeding the memcpy benchmark the memcpy used unaligned vectors, our code uses 64-byte aligned + padded memory with perfectly distributed parallel work.
 
 ---
 
@@ -167,7 +167,7 @@ This also explains exceeding the memcpy benchmark — the memcpy used unaligned 
 
 Every memory access requires translating virtual address → physical address via the page table. The TLB (Translation Lookaside Buffer) caches these translations  but only holds ~64-128 entries.
 
-- **4KB normal pages:** 64MB matrix needs 16,384 page table entries — constant TLB misses, each requiring a RAM access to walk the page table (~100ns penalty)
+- **4KB normal pages:** 64MB matrix needs 16,384 page table entries  constant TLB misses, each requiring a RAM access to walk the page table (~100ns penalty)
 - **2MB huge pages:** Same matrix needs only **32 entries**  fits entirely in TLB, zero TLB misses
 
 ```bash
@@ -183,7 +183,7 @@ This was the final remaining bottleneck  once tiling, padding, and AVX eliminate
 
 ### Streaming Stores
 
-`_mm256_stream_si256` bypasses cache — writes directly to RAM, skipping read-for-ownership. Should be perfect for write-only B.
+`_mm256_stream_si256` bypasses cache  writes directly to RAM, skipping read-for-ownership. Should be perfect for write-only B.
 
 **Why it failed:** Our write pattern `B[j*pad_n+i]` jumps 16KB between consecutive avxtps calls. Cache batches these scattered writes efficiently - multiple writes collect in the same cache line before one RAM write. Streaming stores remove that batching , every write hits RAM individually. With 6 OpenMP threads all doing scattered streaming stores simultaneously, the memory controller gets overwhelmed. Result: 6.2 GB/s vs 7.4 GB/s with regular stores.
 
@@ -195,7 +195,7 @@ Streaming stores work for sequential writes (memcpy-style), not scattered writes
 
 `__builtin_prefetch` hints to fetch next data from RAM while processing current data.
 
-**Why it failed:** `-O3 -march=native` already inserts automatic prefetch instructions based on loop pattern analysis. Adding manual prefetches created double-prefetching — two fetch requests for the same data, competing for memory bandwidth and cache space. Result: 7-8 GB/s vs 10 GB/s without.
+**Why it failed:** `-O3 -march=native` already inserts automatic prefetch instructions based on loop pattern analysis. Adding manual prefetches created double-prefetching  two fetch requests for the same data, competing for memory bandwidth and cache space. Result: 7-8 GB/s vs 10 GB/s without.
 
 Manual prefetch helps for irregular access patterns (pointer chasing, graphs) where the compiler can't predict what you need next. For regular strided loops like ours, the compiler does it better.
 
