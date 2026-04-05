@@ -45,7 +45,7 @@ sudo sh -c 'echo 128 > /proc/sys/vm/nr_hugepages'  # for huge pages
 | 7 | Remove outer tiling (2 loops) | ~10.0 | 62x |
 | 8 | 2MB Huge pages | ~11.5 | 71x |
 
-**Hardware memcpy ceiling (64MB, OpenMP):** 8.048 GB/s  
+**Hardware memcpy ceiling (64MB, OpenMP):** 12.88 GB/s  
 **Final transpose:** 11.5 GB/s
 
 ---
